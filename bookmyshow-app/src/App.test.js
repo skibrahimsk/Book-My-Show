@@ -1,8 +1,22 @@
-import { render, screen } from '@testing-library/react';
-import App from './App';
+import { render, screen } from "@testing-library/react";
+import App from "./App";
 
-test('renders learn react link', () => {
+jest.mock("./Routes/Navbar", () => () => (
+  <div data-testid="navbar">Navbar</div>
+));
+
+jest.mock("./Routes/Router", () => () => (
+  <div data-testid="router">Application Routes</div>
+));
+
+jest.mock("./Routes/Footer", () => () => (
+  <div data-testid="footer">Footer</div>
+));
+
+test("renders the BookMyShow application structure", () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+
+  expect(screen.getByTestId("navbar")).toBeInTheDocument();
+  expect(screen.getByTestId("router")).toBeInTheDocument();
+  expect(screen.getByTestId("footer")).toBeInTheDocument();
 });
