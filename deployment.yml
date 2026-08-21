@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: bms-container
-          image: skjaan/bms:latest
+          image: 950174293211.dkr.ecr.ap-southeast-2.amazonaws.com/bms:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
