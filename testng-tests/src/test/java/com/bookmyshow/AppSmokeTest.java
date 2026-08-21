@@ -3,11 +3,7 @@ package com.bookmyshow;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.nio.charset.StandardCharsets;
 
 public class AppSmokeTest {
 
@@ -20,29 +16,34 @@ public class AppSmokeTest {
             "APP_URL environment variable must be configured in Jenkins"
         );
 
-        HttpClient client = HttpClient.newBuilder()
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .connectTimeout(Duration.ofSeconds(20))
-            .build();
+        Process process = new ProcessBuilder(
+            "curl",
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--retry", "5",
+            "--retry-delay", "5",
+            "--retry-all-errors",
+            "--connect-timeout", "15",
+            "--max-time", "60",
+            appUrl
+        ).redirectErrorStream(true).start();
 
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(appUrl))
-            .timeout(Duration.ofSeconds(30))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = client.send(
-            request,
-            HttpResponse.BodyHandlers.ofString()
+        String response = new String(
+            process.getInputStream().readAllBytes(),
+            StandardCharsets.UTF_8
         );
 
-        Assert.assertTrue(
-            response.statusCode() >= 200 && response.statusCode() < 400,
-            "Application returned HTTP status: " + response.statusCode()
+        int exitCode = process.waitFor();
+
+        Assert.assertEquals(
+            exitCode,
+            0,
+            "Application request failed: " + response
         );
 
         Assert.assertFalse(
-            response.body().isBlank(),
+            response.isBlank(),
             "Application returned an empty response"
         );
     }
